@@ -37,7 +37,12 @@ def get_weather_information(city: str) -> Dict:
            dict: Full JSON response including current and daily forecast data.
     """
     lat, lon = get_coordinates(city)
-    params = {"lat": lat, "lon": lon, "units": "metric", "appid": API_KEY}
+    params = {
+        "lat": lat,
+        "lon": lon,
+        "units": "metric",
+        "appid": API_KEY
+    }
     resp = requests.get(URL_WEATHER, params=params)
     resp.raise_for_status()
     data = resp.json()
@@ -67,7 +72,7 @@ def get_current_weather(city: str) -> Dict[str, str | float]:
 
 def get_forecast_weather(city: str, target_date: datetime.date) -> Dict[str, float]:
     """
-        Get min/max forecast temperatures for a specific future date (max 8 days ahead).
+        Get min/max forecast temperatures for a specific future date (max 10 days ahead).
 
         Raises:
             ValueError: If forecast for target date is not available.
@@ -84,4 +89,4 @@ def get_forecast_weather(city: str, target_date: datetime.date) -> Dict[str, flo
                 "max_temperature": round(day["temp"]["max"], 1)
             }
 
-    raise ValueError("Forecast not available for this date (only 8 days ahead)")
+    raise ValueError("Forecast not available for this date (only 10 days ahead)")

@@ -27,8 +27,8 @@ class ForecastQuerySerializer(serializers.Serializer):
         today = datetime.today().date()
         if value < today:
             raise serializers.ValidationError("Date cannot be in the past")
-        if value > today + timedelta(days=8):
-            raise serializers.ValidationError("Date cannot be more than 8 days from today")
+        if value > today + timedelta(days=10):
+            raise serializers.ValidationError("Date cannot be more than 10 days from today")
         return value
 
 
@@ -48,6 +48,6 @@ class ForecastOverrideSerializer(serializers.ModelSerializer):
             raise serializers.ValidationError("Min temperature cannot exceed max temperature")
         if data['date'] < datetime.today().date():
             raise serializers.ValidationError("Date cannot be in the past")
-        if data['date'] > datetime.today().date() + timedelta(days=8):
+        if data['date'] > datetime.today().date() + timedelta(days=10):
             raise serializers.ValidationError("Date cannot be more than 10 days from today")
         return data
