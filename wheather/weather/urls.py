@@ -1,4 +1,4 @@
-"""wheather URL Configuration
+"""weather URL Configuration
 
 The `urlpatterns` list routes URLs to views. For more information please see:
     https://docs.djangoproject.com/en/3.2/topics/http/urls/
@@ -15,7 +15,10 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
+from weather_api.views import CurrentWeatherView, ForecastWeatherView
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/weather/current', CurrentWeatherView.as_view()),
+    path('api/weather/forecast', ForecastWeatherView.as_view())
 ]

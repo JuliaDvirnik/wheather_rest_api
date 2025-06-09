@@ -1,6 +1,6 @@
 from django.apps import AppConfig
 
 
-class WheatherApiConfig(AppConfig):
+class weatherApiConfig(AppConfig):
     default_auto_field = 'django.db.models.BigAutoField'
-    name = 'wheather_api'
+    name = 'weather_api'
