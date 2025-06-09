@@ -20,16 +20,9 @@ class ForecastQuerySerializer(serializers.Serializer):
     city = serializers.CharField(required=True)
     date = serializers.DateField(input_formats=["%d.%m.%Y"], required=True)
 
-    def validate_date(self, value: datetime.date) -> datetime.date:
-        """
-            Ensure the date is within the allowed forecast range.
-        """
-        today = datetime.today().date()
-        if value < today:
-            raise serializers.ValidationError("Date cannot be in the past")
-        if value > today + timedelta(days=10):
-            raise serializers.ValidationError("Date cannot be more than 10 days from today")
-        return value
+    def validate(self, data: Dict[str, Any]) -> Dict[str, Any]:
+        validate_date(data['date'])
+        return data
 
 
 class ForecastOverrideSerializer(serializers.ModelSerializer):
@@ -46,8 +39,16 @@ class ForecastOverrideSerializer(serializers.ModelSerializer):
     def validate(self, data: Dict[str, Any]) -> Dict[str, Any]:
         if data['min_temperature'] > data['max_temperature']:
             raise serializers.ValidationError("Min temperature cannot exceed max temperature")
-        if data['date'] < datetime.today().date():
-            raise serializers.ValidationError("Date cannot be in the past")
-        if data['date'] > datetime.today().date() + timedelta(days=10):
-            raise serializers.ValidationError("Date cannot be more than 10 days from today")
+        validate_date(data['date'])
         return data
+
+
+def validate_date(value: datetime.date):
+    """
+        Ensure the date is within the allowed forecast range.
+    """
+    today = datetime.today().date()
+    if value < today:
+        raise serializers.ValidationError("Date cannot be in the past")
+    if value > today + timedelta(days=10):
+        raise serializers.ValidationError("Date cannot be more than 10 days from today")

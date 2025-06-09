@@ -22,8 +22,8 @@ class CurrentWeatherView(APIView):
 
         try:
             return Response(get_current_weather(city))
-        except requests.exceptions.HTTPError:
-            return Response({'error': 'Error while finding current weather'}, status=404)
+        except (requests.exceptions.HTTPError, ValueError) as e:
+            return Response({'error': str(e)}, status=503)
 
 
 class ForecastWeatherView(APIView):
@@ -52,8 +52,8 @@ class ForecastWeatherView(APIView):
 
         try:
             return Response(get_forecast_weather(city, date_obj))
-        except requests.exceptions.HTTPError:
-            return Response({'error': 'Error while finding weather forecast'}, status=404)
+        except (requests.exceptions.HTTPError, ValueError) as e:
+            return Response({'error': str(e)}, status=503)
 
     def post(self, request) -> Response:
         serializer = ForecastOverrideSerializer(data=request.data)

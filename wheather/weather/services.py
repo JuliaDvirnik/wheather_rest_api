@@ -1,10 +1,13 @@
 from __future__ import annotations
+from rest_framework.exceptions import APIException
 
 from typing import Tuple, Dict
 
 import requests
 from decouple import config
 from datetime import datetime, timedelta
+
+from requests import Timeout, HTTPError, RequestException
 
 API_KEY = config("OPENWEATHER_API_KEY")
 URL_WEATHER = "https://api.openweathermap.org/data/3.0/onecall"
@@ -21,9 +24,7 @@ def get_coordinates(city: str) -> Tuple[float, float]:
             tuple: (latitude, longitude)
     """
     params = {"q": city, "limit": 1, "appid": API_KEY}
-    resp = requests.get(URL_GEO, params=params)
-    resp.raise_for_status()
-    data = resp.json()
+    data = fetch_external_api_data(URL_GEO, params)
     if not data:
         raise ValueError("City not found")
     return data[0]["lat"], data[0]["lon"]
@@ -43,9 +44,7 @@ def get_weather_information(city: str) -> Dict:
         "units": "metric",
         "appid": API_KEY
     }
-    resp = requests.get(URL_WEATHER, params=params)
-    resp.raise_for_status()
-    data = resp.json()
+    data = fetch_external_api_data(URL_WEATHER, params)
     if not data:
         raise ValueError("Weather not found")
     return data
@@ -89,4 +88,29 @@ def get_forecast_weather(city: str, target_date: datetime.date) -> Dict[str, flo
                 "max_temperature": round(day["temp"]["max"], 1)
             }
 
-    raise ValueError("Forecast not available for this date (only 10 days ahead)")
+    raise ValueError("Service didn't provide weather on this date")
+
+
+def fetch_external_api_data(url, params):
+    """
+       Sends a GET request to an external API with the given URL and parameters.
+       Handles timeouts, HTTP errors, and general request exceptions.
+
+       Returns:
+           - Parsed JSON response (dict) on success
+           - Tuple (error message dict, HTTP status code) on failure
+       """
+    try:
+        resp = requests.get(url, params=params)
+        resp.raise_for_status()
+        data = resp.json()
+    except Timeout:
+        # External API took too long
+        raise APIException(detail='Upstream API timeout', code=503)
+    except HTTPError as http_err:
+        # Upstream API returned 4xx or 5xx
+        raise APIException(detail=f'Upstream API error: {str(http_err)}', code=503)
+    except RequestException as req_err:
+        # Catch-all for other issues (DNS failure, connection errors)
+        raise APIException(detail=f'Request failed: {str(req_err)}', code=503)
+    return data
